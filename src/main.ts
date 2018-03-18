@@ -16,10 +16,10 @@ import * as WEBGLOBJLOADER from 'webgl-obj-loader';
 const controls = {
   MaxSpeed: 25,
   ParticleSize : 10.0,
-  Shape: 2,
+  Shape: 1,
   ColorScheme: 1,
-  Alpha: 0.2,
-  Background : 1,
+  Alpha: 0.4,
+  Background : 0,
 };
 
 let particles: Array<Particle> = [];
@@ -292,7 +292,7 @@ function loadScene() {
   elinFloatArray = new Float32Array(elinArray);
   
   objSquare.setNumInstances(particleInfoBufferSize * particleInfoBufferSize);
-  objSquare.setInstanceVBOs(offsets, suzanneFloatArray);
+  objSquare.setInstanceVBOs(offsets, cubeFloatArray);
   
 }
 

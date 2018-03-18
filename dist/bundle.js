@@ -3448,10 +3448,10 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 const controls = {
     MaxSpeed: 25,
     ParticleSize: 10.0,
-    Shape: 2,
+    Shape: 1,
     ColorScheme: 1,
-    Alpha: 0.2,
-    Background: 1,
+    Alpha: 0.4,
+    Background: 0,
 };
 let particles = [];
 let square;
@@ -3647,7 +3647,7 @@ function loadScene() {
     sheepFloatArray = new Float32Array(sheepArray);
     elinFloatArray = new Float32Array(elinArray);
     objSquare.setNumInstances(particleInfoBufferSize * particleInfoBufferSize);
-    objSquare.setInstanceVBOs(offsets, suzanneFloatArray);
+    objSquare.setInstanceVBOs(offsets, cubeFloatArray);
 }
 function setInstanceColor(index) {
     if (index == 0)
@@ -16330,7 +16330,7 @@ module.exports = "#version 300 es\r\n\r\nin vec4 vs_Pos; // Non-instanced; each 
 /* 79 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n//uniform sampler2D u_ParticleTexture;\r\nuniform float u_Time;\r\n\r\nuniform vec4 u_ParticleColor00;\r\nuniform vec4 u_ParticleColor01;\r\nuniform vec4 u_ParticleColor02;\r\nuniform vec4 u_ParticleColor03;\r\nuniform vec4 u_ParticleColor04;\r\n\r\nin vec2 fs_UV;\r\n\r\nlayout(location = 0) out vec4 out_Color;\r\n\r\nvoid main()\r\n{    \r\n  float x = pow(sqrt(1.0 - abs((fs_UV.x * 2.0 - 1.0))), 3.0);\r\n  float y = pow(fs_UV.y, 16.0);\r\n  float alpha = x * y;\r\n\r\n  vec4 colorResult;\r\n\r\n  float colorPin = fract(u_Time*0.2);\r\n\r\n  if(colorPin < 0.2)\r\n       colorResult = mix(u_ParticleColor00, u_ParticleColor01, colorPin / 0.2 );\r\n    else if(colorPin < 0.4)\r\n       colorResult = mix(u_ParticleColor01, u_ParticleColor02, (colorPin-0.2) / 0.2 );\r\n    else if(colorPin < 0.6)\r\n       colorResult = mix(u_ParticleColor02, u_ParticleColor03, (colorPin-0.4) / 0.2 );\r\n    else if(colorPin < 0.8)\r\n       colorResult = mix(u_ParticleColor03, u_ParticleColor04, (colorPin-0.6) / 0.2 );\r\n    else\r\n       colorResult = mix(u_ParticleColor04, u_ParticleColor00, (colorPin-0.8) / 0.2 );\r\n\r\n  out_Color = colorResult * alpha * (sin(u_Time*0.4) * 0.2 + 0.8) * 0.4;\r\n  out_Color.w = 1.0;\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n//uniform sampler2D u_ParticleTexture;\r\nuniform float u_Time;\r\n\r\nuniform vec4 u_ParticleColor00;\r\nuniform vec4 u_ParticleColor01;\r\nuniform vec4 u_ParticleColor02;\r\nuniform vec4 u_ParticleColor03;\r\nuniform vec4 u_ParticleColor04;\r\n\r\nin vec2 fs_UV;\r\n\r\nlayout(location = 0) out vec4 out_Color;\r\n\r\nvoid main()\r\n{    \r\n  float x = pow(sqrt(1.0 - abs((fs_UV.x * 2.0 - 1.0))), 3.0);\r\n  float y = pow(fs_UV.y, 16.0);\r\n  y += pow(1.0 - fs_UV.y, 16.0);\r\n  float alpha = x * y;\r\n\r\n  vec4 colorResult;\r\n\r\n  float colorPin = fract(u_Time*0.2);\r\n\r\n  if(colorPin < 0.2)\r\n       colorResult = mix(u_ParticleColor00, u_ParticleColor01, colorPin / 0.2 );\r\n    else if(colorPin < 0.4)\r\n       colorResult = mix(u_ParticleColor01, u_ParticleColor02, (colorPin-0.2) / 0.2 );\r\n    else if(colorPin < 0.6)\r\n       colorResult = mix(u_ParticleColor02, u_ParticleColor03, (colorPin-0.4) / 0.2 );\r\n    else if(colorPin < 0.8)\r\n       colorResult = mix(u_ParticleColor03, u_ParticleColor04, (colorPin-0.6) / 0.2 );\r\n    else\r\n       colorResult = mix(u_ParticleColor04, u_ParticleColor00, (colorPin-0.8) / 0.2 );\r\n\r\n  out_Color = colorResult * alpha * (sin(u_Time*0.4) * 0.2 + 0.8) * 0.4;\r\n  out_Color.w = 1.0;\r\n}\r\n"
 
 /***/ })
 /******/ ]);

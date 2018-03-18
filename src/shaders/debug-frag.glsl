@@ -18,6 +18,7 @@ void main()
 {    
   float x = pow(sqrt(1.0 - abs((fs_UV.x * 2.0 - 1.0))), 3.0);
   float y = pow(fs_UV.y, 16.0);
+  y += pow(1.0 - fs_UV.y, 16.0);
   float alpha = x * y;
 
   vec4 colorResult;
