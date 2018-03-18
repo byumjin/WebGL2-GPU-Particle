@@ -17,7 +17,7 @@ const controls = {
   MaxSpeed: 25,
   ParticleSize : 10.0,
   Shape: 1,
-  ColorScheme: 1,
+  ColorScheme: 0,
   Alpha: 0.4,
   Background : 0,
 };
@@ -396,7 +396,7 @@ function main() {
 
   gui.add(controls, 'Background', { None: 0, Waves: 1, Steps: 2, Petal: 3} );
 
-  gui.close();
+  //gui.close();
 
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
