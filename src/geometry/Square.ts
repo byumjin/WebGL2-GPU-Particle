@@ -7,7 +7,7 @@ class Square extends Drawable {
   positions: Float32Array;
   colors: Float32Array;
   offsets: Float32Array; // Data for bufTranslate
-
+  uvs: Float32Array;
 
   constructor() {
     super(); // Call the constructor of the super class. This is required.
@@ -22,17 +22,27 @@ class Square extends Drawable {
                                      0.5, 0.5, 0, 1,
                                      -0.5, 0.5, 0, 1]);
 
+  this.uvs = new Float32Array([0.0, 1.0,
+                                      1.0, 1.0,
+                                      1.0, 0.0,
+                                      0.0, 0.0]);         
+
     this.generateIdx();
     this.generatePos();
     this.generateCol();
     this.generateTranslate();
 
+    this.generateUV();
+
     this.count = this.indices.length;
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.bufIdx);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
-
+ 
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufPos);
     gl.bufferData(gl.ARRAY_BUFFER, this.positions, gl.STATIC_DRAW);
+ 
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufUV);
+    gl.bufferData(gl.ARRAY_BUFFER, this.uvs, gl.STATIC_DRAW);
 
     console.log(`Created square`);
   }
@@ -45,6 +55,12 @@ class Square extends Drawable {
     gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
     gl.bindBuffer(gl.ARRAY_BUFFER, this.bufTranslate);
     gl.bufferData(gl.ARRAY_BUFFER, this.offsets, gl.STATIC_DRAW);
+  }
+
+  setInstanceColor( colors: Float32Array) {
+    this.colors = colors;
+    gl.bindBuffer(gl.ARRAY_BUFFER, this.bufCol);
+    gl.bufferData(gl.ARRAY_BUFFER, this.colors, gl.STATIC_DRAW);
   }
 };
 
