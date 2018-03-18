@@ -396,6 +396,8 @@ function main() {
 
   gui.add(controls, 'Background', { None: 0, Waves: 1, Steps: 2, Petal: 3} );
 
+  gui.close();
+
   // get canvas and webgl context
   const canvas = <HTMLCanvasElement> document.getElementById('canvas');
   const gl = <WebGL2RenderingContext> canvas.getContext('webgl2');

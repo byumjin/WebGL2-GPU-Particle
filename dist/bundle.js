@@ -3720,6 +3720,7 @@ function main() {
         setInstanceColor(controls.Shape);
     });
     gui.add(controls, 'Background', { None: 0, Waves: 1, Steps: 2, Petal: 3 });
+    gui.close();
     // get canvas and webgl context
     const canvas = document.getElementById('canvas');
     const gl = canvas.getContext('webgl2');
