@@ -49,8 +49,11 @@ void main()
     //Background     
     else
     {
-        
-        if(u_ClickedPos.w <= 0.0)
+        if(u_ClickedPos.w > 0.0 && distance(prevPosition.xyz, u_ClickedPos.xyz) < 50.0)
+        {
+            targetPos = u_ClickedPos;
+        }   
+        else
         {
             //targetPos.w = 0.0;
 
@@ -99,14 +102,6 @@ void main()
             }
 
             targetPos = vec4(offset, 1.0);
-        }
-        else if(distance(prevPosition.xyz, u_ClickedPos.xyz) < 50.0)
-        {
-            targetPos = u_ClickedPos;
-        }   
-        else
-        {
-            
         }
 
         isntBG = 0.0;     
