@@ -3446,8 +3446,9 @@ Object.defineProperty(__webpack_exports__, "__esModule", { value: true });
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
+    AutoPlay: true,
     MaxSpeed: 25,
-    ParticleSize: 10.0,
+    ParticleSize: 12.0,
     Shape: 1,
     ColorScheme: 0,
     Alpha: 0.4,
@@ -3463,6 +3464,9 @@ let oldTime = 0.0;
 let currentTime = 0.0;
 let elapsedTime = 0.0;
 let deltaTime = 0.0;
+let shapeChangeTime = 0.0;
+let bgChangeTime = 0.0;
+let colorChangeTime = 0.0;
 let mousePosition = [250, 250];
 let currentAngle = [0, 0];
 let bLeftDragged = false;
@@ -3712,14 +3716,16 @@ function main() {
     document.body.appendChild(stats.domElement);
     // Add controls to the gui
     const gui = new __WEBPACK_IMPORTED_MODULE_2_dat_gui__["GUI"]();
-    gui.add(controls, 'MaxSpeed', 10, 100).step(1);
-    gui.add(controls, 'ParticleSize', 1.0, 30.0).step(0.1);
-    gui.add(controls, 'Alpha', 0.0, 1.0).step(0.01);
+    gui.add(controls, 'AutoPlay');
+    var PAR = gui.addFolder('Particle');
+    PAR.add(controls, 'MaxSpeed', 10, 100).step(1);
+    PAR.add(controls, 'ParticleSize', 1.0, 30.0).step(0.1);
+    PAR.add(controls, 'Alpha', 0.0, 1.0).step(0.01);
     gui.add(controls, 'ColorScheme', { Macaroon: 0, Magenta: 1, Jungle: 2 });
     gui.add(controls, 'Shape', { None: 0, Cube: 1, Suzanne: 2, Female: 3, Dragon: 4, Sheep: 5, Chromie: 6 }).onChange(function () {
         setInstanceColor(controls.Shape);
     });
-    gui.add(controls, 'Background', { None: 0, Waves: 1, Steps: 2, Petal: 3 });
+    gui.add(controls, 'Background', { None: 0, Waves: 1, Steps: 2, TurnTable: 3, HourGlass: 4 });
     //gui.close();
     // get canvas and webgl context
     const canvas = document.getElementById('canvas');
@@ -3824,6 +3830,30 @@ function main() {
         updateTime();
         addForces(elapsedTime * 0.0001);
         camera.update();
+        if (controls.AutoPlay) {
+            var localDeltaTime = deltaTime * 0.001;
+            shapeChangeTime += localDeltaTime;
+            bgChangeTime += localDeltaTime;
+            colorChangeTime += localDeltaTime;
+            if (shapeChangeTime >= 8.0) {
+                controls.Shape = (controls.Shape + 1) % 7;
+                if (controls.Shape == 0)
+                    controls.Shape = 1;
+                setInstanceColor(controls.Shape);
+                shapeChangeTime = 0.0;
+            }
+            if (bgChangeTime >= 14.0) {
+                controls.Background = (controls.Background + 1) % 5;
+                bgChangeTime = 0.0;
+            }
+            /*
+            if( colorChangeTime >= 11.0)
+            {
+              controls.ColorScheme = (controls.ColorScheme + 1) % 3;
+              colorChangeTime = 0.0;
+            }
+            */
+        }
         stats.begin();
         //particleRender.setTime(currentTime * 0.001);
         //updateParticles(deltaTime * 0.001);
@@ -3836,7 +3866,7 @@ function main() {
         particlePhysic.setFrameBuffer(0);
         particlePhysic.renderStateDotBuffer(camera, stateDot, [
             physicSquare,
-        ], controls.MaxSpeed, particleInfoBufferResolution, clickedPos);
+        ], controls.MaxSpeed, particleInfoBufferResolution, clickedPos, elapsedTime * 0.001, controls.Background);
         particlePhysic.setFrameBuffer(1);
         particlePhysic.renderStateBuffer(camera, state, [
             physicSquare,
@@ -3947,12 +3977,12 @@ function initEventHandlers(canvas, mousePosition, currentAngle) {
     };
 }
 function createMeshes() {
-    createdByLoader(MeshManager[0], cubeArray, 75000);
-    createdByLoader(MeshManager[1], suzanneArray, 1000);
-    createdByLoader(MeshManager[2], femaleArray, 160);
-    createdByLoader(MeshManager[3], dragonArray, 10);
-    createdByLoader(MeshManager[4], sheepArray, 180);
-    createdByLoader(MeshManager[5], elinArray, 90);
+    createdByLoader(MeshManager[0], cubeArray, 30000);
+    createdByLoader(MeshManager[1], suzanneArray, 500);
+    createdByLoader(MeshManager[2], femaleArray, 80);
+    createdByLoader(MeshManager[3], dragonArray, 5);
+    createdByLoader(MeshManager[4], sheepArray, 100);
+    createdByLoader(MeshManager[5], elinArray, 50);
     main();
 }
 function DownloadMeshes() {
@@ -12801,13 +12831,15 @@ class OpenGLRenderer {
             prog.draw(drawable);
         }
     }
-    renderStateDotBuffer(camera, prog, drawables, maxSpeed, bufferSize, clickedPos) {
+    renderStateDotBuffer(camera, prog, drawables, maxSpeed, bufferSize, clickedPos, time, backGround) {
         prog.setBufferSize(bufferSize);
         prog.setMaxSpeed(maxSpeed);
         prog.setClickedPos(clickedPos);
         prog.setprevVelocityTexture(this.stateAttaches[0]);
         prog.setprevPositionTexture(this.stateAttaches[1]);
         prog.setObjInfoTexture(this.objAttaches[0]);
+        prog.setBackGround(backGround);
+        prog.setTime(time);
         for (let drawable of drawables) {
             prog.draw(drawable);
         }
@@ -16277,13 +16309,13 @@ class ShaderProgram {
 /* 70 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\n\r\nuniform sampler2D u_prevPositionTexture;\r\nuniform sampler2D u_prevVelocityTexture;\r\n\r\nuniform mat4 u_Model;\r\nuniform mat4 u_ViewProj;\r\nuniform vec2 u_BufferSize;\r\nuniform mat3 u_CameraAxes;\r\nuniform float u_MaxSpeed;\r\n\r\nuniform float u_ParticleSize;\r\nuniform float u_Time;\r\n\r\nuniform float u_BackGround;\r\n\r\nuniform vec4 u_ParticleColor00;\r\nuniform vec4 u_ParticleColor01;\r\nuniform vec4 u_ParticleColor02;\r\nuniform vec4 u_ParticleColor03;\r\nuniform vec4 u_ParticleColor04;\r\n\r\nin vec4 vs_Pos; // Non-instanced; each particle is the same quad drawn in a different place\r\nin vec4 vs_Col; // An instanced rendering attribute; each particle instance has a different color\r\nin vec2 vs_UV;\r\nin vec3 vs_Translate; // Another instance rendering attribute used to position each quad instance in the scene\r\n\r\nout vec4 fs_Col;\r\nout vec4 fs_Pos;\r\nout vec2 fs_UV;\r\n\r\nvoid main()\r\n{\r\n    int y = int(gl_InstanceID / int(u_BufferSize.x));\r\n    int x = gl_InstanceID - y * int(u_BufferSize.x);\r\n\r\n    ivec2 index = ivec2(x, y);\r\n    vec2 uv = vec2(float(x) / u_BufferSize.x, float(y) / u_BufferSize.y);\r\n\r\n    vec4 prevPos = texture(u_prevPositionTexture, uv);\r\n    vec3 offset = prevPos.xyz;\r\n\r\n    float colorSpeed = length(texture(u_prevVelocityTexture, uv).xyz) / u_MaxSpeed;\r\n    float colorPin = (sin( (uv.x + uv.y) * 0.5  + u_Time) + 1.0) * 0.5;\r\n    vec4 colorResult;\r\n    \r\n    if(colorPin < 0.2)\r\n       colorResult = mix(u_ParticleColor00, u_ParticleColor01, colorPin / 0.2 );\r\n    else if(colorPin < 0.4)\r\n       colorResult = mix(u_ParticleColor01, u_ParticleColor02, (colorPin-0.2) / 0.2 );\r\n    else if(colorPin < 0.6)\r\n       colorResult = mix(u_ParticleColor02, u_ParticleColor03, (colorPin-0.4) / 0.2 );\r\n    else if(colorPin < 0.8)\r\n       colorResult = mix(u_ParticleColor03, u_ParticleColor04, (colorPin-0.6) / 0.2 );\r\n    else\r\n       colorResult = mix(u_ParticleColor04, u_ParticleColor00, (colorPin-0.8) / 0.2 );\r\n\r\n    fs_Col = vec4(colorResult.xyz, colorSpeed);\r\n    \r\n    fs_Pos = vs_Pos * u_ParticleSize;\r\n   \r\n    \r\n    //BG particle\r\n    if(prevPos.w == 0.0)\r\n    {\r\n        fs_Pos *= 3.0;\r\n\r\n        //apply env force\r\n\r\n        if(u_BackGround < 0.5)\r\n        {\r\n\r\n        }\r\n        else if(u_BackGround < 1.5)\r\n        {\r\n            float waveTime = u_Time * 2.6;\r\n            float waveGap = sqrt(offset.x * offset.x + offset.z * offset.z);         \r\n            offset.y = sin(waveGap * 0.3 - waveTime*10.0  ) * sqrt(waveGap*0.5) - 18.0;\r\n            \r\n        }\r\n        else if(u_BackGround < 2.5)\r\n        {\r\n            float stepsTime = u_Time * 2.6;\r\n            float XX = floor(offset.x*0.3);\r\n            float YY = floor(offset.z*0.3);\r\n            offset.y = max(XX * sin(XX + stepsTime), YY * cos(YY +stepsTime)) - 18.0;\r\n        }\r\n        else if(u_BackGround < 3.5)\r\n        {\r\n            //Refer to Nop Jiarathanakul's A Particle Dream\r\n            // cylindrical coords\r\n            float radius = uv.y;\r\n            float theta = uv.x * 6.283185307179586476925286766559 + u_Time;\r\n\r\n            // outward spiral function\r\n            radius *= 3.1415926535897932384626433832795;\r\n            vec3 targetPos = vec3(\r\n                radius * sin(theta),\r\n                radius*radius * sin(4.0*theta + sin(3.0*3.1415926535897932384626433832795*radius+u_Time/2.0)) / 10.0,\r\n                radius * cos(theta)\r\n            );\r\n            offset = targetPos * 15.0;\r\n        }\r\n    }\r\n    \r\n\r\n    fs_UV.x = prevPos.w;\r\n\r\n    offset = vec3(u_Model * vec4(offset, 1.0));\r\n    vec3 billboardPos = offset + fs_Pos.x * u_CameraAxes[0] + fs_Pos.y * u_CameraAxes[1];\r\n\r\n    gl_Position = u_ViewProj * vec4(billboardPos, 1.0);\r\n}\r\n"
+module.exports = "#version 300 es\r\n\r\nuniform sampler2D u_prevPositionTexture;\r\nuniform sampler2D u_prevVelocityTexture;\r\n\r\nuniform mat4 u_Model;\r\nuniform mat4 u_ViewProj;\r\nuniform vec2 u_BufferSize;\r\nuniform mat3 u_CameraAxes;\r\nuniform float u_MaxSpeed;\r\n\r\nuniform float u_ParticleSize;\r\nuniform float u_Time;\r\n\r\nuniform float u_BackGround;\r\n\r\nuniform vec4 u_ParticleColor00;\r\nuniform vec4 u_ParticleColor01;\r\nuniform vec4 u_ParticleColor02;\r\nuniform vec4 u_ParticleColor03;\r\nuniform vec4 u_ParticleColor04;\r\n\r\nin vec4 vs_Pos; // Non-instanced; each particle is the same quad drawn in a different place\r\nin vec4 vs_Col; // An instanced rendering attribute; each particle instance has a different color\r\nin vec2 vs_UV;\r\nin vec3 vs_Translate; // Another instance rendering attribute used to position each quad instance in the scene\r\n\r\nout vec4 fs_Col;\r\nout vec4 fs_Pos;\r\nout vec2 fs_UV;\r\n\r\nvoid main()\r\n{\r\n    int y = int(gl_InstanceID / int(u_BufferSize.x));\r\n    int x = gl_InstanceID - y * int(u_BufferSize.x);\r\n\r\n    ivec2 index = ivec2(x, y);\r\n    vec2 uv = vec2(float(x) / u_BufferSize.x, float(y) / u_BufferSize.y);\r\n\r\n    vec4 prevPos = texture(u_prevPositionTexture, uv);\r\n    vec3 offset = prevPos.xyz;\r\n\r\n    float colorSpeed = length(texture(u_prevVelocityTexture, uv).xyz) / u_MaxSpeed;\r\n    float colorPin = (sin( (uv.x + uv.y) * 0.5  + u_Time) + 1.0) * 0.5;\r\n    vec4 colorResult;\r\n    \r\n    if(colorPin < 0.2)\r\n       colorResult = mix(u_ParticleColor00, u_ParticleColor01, colorPin / 0.2 );\r\n    else if(colorPin < 0.4)\r\n       colorResult = mix(u_ParticleColor01, u_ParticleColor02, (colorPin-0.2) / 0.2 );\r\n    else if(colorPin < 0.6)\r\n       colorResult = mix(u_ParticleColor02, u_ParticleColor03, (colorPin-0.4) / 0.2 );\r\n    else if(colorPin < 0.8)\r\n       colorResult = mix(u_ParticleColor03, u_ParticleColor04, (colorPin-0.6) / 0.2 );\r\n    else\r\n       colorResult = mix(u_ParticleColor04, u_ParticleColor00, (colorPin-0.8) / 0.2 );\r\n\r\n    fs_Col = vec4(colorResult.xyz, colorSpeed);\r\n    \r\n    fs_Pos = vs_Pos * u_ParticleSize;\r\n   \r\n    fs_UV.x = prevPos.w;\r\n\r\n    offset = vec3(u_Model * vec4(offset, 1.0));\r\n    vec3 billboardPos = offset + fs_Pos.x * u_CameraAxes[0] + fs_Pos.y * u_CameraAxes[1];\r\n\r\n    gl_Position = u_ViewProj * vec4(billboardPos, 1.0);\r\n}\r\n"
 
 /***/ }),
 /* 71 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nuniform float u_ParticleSize;\r\nuniform float u_ParticleAlpha;\r\nin vec4 fs_Col;\r\nin vec4 fs_Pos;\r\nin vec2 fs_UV;\r\n\r\n\r\nlayout(location = 0) out vec4 out_Color;\r\n\r\nvoid main()\r\n{    \r\n   float dist;\r\n   \r\n   //BG particles     \r\n   if(fs_UV.x == 0.0)\r\n   {\r\n       dist = clamp(1.0 - ( length(fs_Pos.xyz / (u_ParticleSize * 3.0) )  * 2.0), 0.0, 1.0);\r\n   }\r\n   else\r\n   {\r\n       dist = clamp(1.0 - ( length(fs_Pos.xyz / u_ParticleSize)  * 2.0), 0.0, 1.0);\r\n   }\r\n   \r\n   out_Color = vec4(dist) * fs_Col;\r\n   out_Color.xyz *= (u_ParticleAlpha + (1.0 - u_ParticleAlpha) * fs_Col.w);\r\n   out_Color.w = 1.0;\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\nuniform float u_ParticleSize;\r\nuniform float u_ParticleAlpha;\r\nin vec4 fs_Col;\r\nin vec4 fs_Pos;\r\nin vec2 fs_UV;\r\n\r\n\r\nlayout(location = 0) out vec4 out_Color;\r\n\r\nvoid main()\r\n{    \r\n   float dist;\r\n   \r\n   //BG particles     \r\n   if(fs_UV.x == 0.0)\r\n   {\r\n       dist = clamp(1.0 - ( length(fs_Pos.xyz / (u_ParticleSize) )  * 2.0), 0.0, 1.0);\r\n   }\r\n   else\r\n   {\r\n       dist = clamp(1.0 - ( length(fs_Pos.xyz / u_ParticleSize)  * 2.0), 0.0, 1.0);\r\n   }\r\n   \r\n   out_Color = vec4(dist) * fs_Col;\r\n   out_Color.xyz *=  (u_ParticleAlpha + (1.0 - u_ParticleAlpha) * fs_Col.w);\r\n   out_Color.w = 1.0;\r\n}\r\n"
 
 /***/ }),
 /* 72 */
@@ -16295,7 +16327,7 @@ module.exports = "#version 300 es\r\n\r\nuniform vec2 u_BufferSize;\r\n\r\nin ve
 /* 73 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n\r\nuniform sampler2D u_prevVelocityTexture;\r\nuniform sampler2D u_prevPositionTexture;\r\n\r\nuniform sampler2D u_objInfoTexture;\r\n\r\nuniform vec2 u_BufferSize;\r\nuniform vec4 u_ClickedPos;\r\nuniform float u_MaxSpeed;\r\n\r\nuniform int u_TraceObj;\r\n\r\nin vec4 fs_Col;\r\nin vec4 fs_Pos;\r\nin vec2 fs_UV;\r\n\r\nlayout(location = 0) out vec4 out_velocityPrime;\r\nlayout(location = 1) out vec4 out_positionPrime;\r\n\r\nlayout(location = 2) out vec4 out_velocity;\r\nlayout(location = 3) out vec4 out_position;\r\n\r\nvoid main()\r\n{    \r\n    vec4 prevPosition = texture(u_prevPositionTexture, fs_UV);\r\n    vec4 prevVelocity = texture(u_prevVelocityTexture, fs_UV);\r\n\r\n    vec4 targetPos;\r\n    \r\n    vec4 objInfo = texture(u_objInfoTexture, fs_UV);    \r\n\r\n    float isntBG = 1.0;\r\n\r\n    if(objInfo.w > 0.0)\r\n    {\r\n        if(u_ClickedPos.w > 0.0 && distance(prevPosition.xyz, u_ClickedPos.xyz) < 30.0)\r\n        {\r\n            targetPos = u_ClickedPos;\r\n        }\r\n        else\r\n            targetPos = objInfo;\r\n    }      \r\n    else\r\n    {\r\n        if(u_ClickedPos.w == 0.0)\r\n        {\r\n            targetPos.w = 0.0;\r\n        }\r\n        else if(distance(prevPosition.xyz, u_ClickedPos.xyz) < 50.0)\r\n        {\r\n            targetPos = u_ClickedPos;\r\n        }   \r\n\r\n        isntBG = 0.0;     \r\n    }\r\n     \r\n\r\n    //calculate velocityPrime\r\n    \r\n   \r\n\r\n    vec3 desiredVelocity;\r\n    \r\n    if(targetPos.w == 1.0)\r\n    {\r\n       desiredVelocity = targetPos.xyz - prevPosition.xyz;\r\n\r\n       //if( length(desiredVelocity) > u_MaxSpeed)\r\n           desiredVelocity = normalize(desiredVelocity) * u_MaxSpeed;\r\n    }\r\n    else if(targetPos.w == 2.0)\r\n    {\r\n       desiredVelocity = prevPosition.xyz - targetPos.xyz;\r\n       //if( length(desiredVelocity) > u_MaxSpeed)\r\n           desiredVelocity = normalize(desiredVelocity) * u_MaxSpeed;\r\n    }\r\n    else\r\n    {\r\n        desiredVelocity = fs_Col.xyz - prevPosition.xyz;//  vec3(0.0);\r\n    }\r\n      \r\n    \r\n\r\n    vec3 acceleration = (desiredVelocity - prevVelocity.xyz);\r\n    \r\n    out_velocityPrime = vec4(acceleration, 1.0);\r\n    out_positionPrime = prevVelocity;\r\n\r\n    out_velocity = prevVelocity;\r\n    out_position = prevPosition;\r\n    out_position.w = isntBG;\r\n    \r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n\r\nuniform sampler2D u_prevVelocityTexture;\r\nuniform sampler2D u_prevPositionTexture;\r\n\r\nuniform sampler2D u_objInfoTexture;\r\n\r\nuniform vec2 u_BufferSize;\r\nuniform vec4 u_ClickedPos;\r\nuniform float u_MaxSpeed;\r\n\r\nuniform int u_TraceObj;\r\n\r\nuniform float u_BackGround;\r\nuniform float u_Time;\r\n\r\nin vec4 fs_Col;\r\nin vec4 fs_Pos;\r\nin vec2 fs_UV;\r\n\r\nlayout(location = 0) out vec4 out_velocityPrime;\r\nlayout(location = 1) out vec4 out_positionPrime;\r\n\r\nlayout(location = 2) out vec4 out_velocity;\r\nlayout(location = 3) out vec4 out_position;\r\n\r\nvoid main()\r\n{    \r\n    vec4 prevPosition = texture(u_prevPositionTexture, fs_UV);\r\n    vec4 prevVelocity = texture(u_prevVelocityTexture, fs_UV);\r\n\r\n    vec4 targetPos;\r\n    \r\n    vec4 objInfo = texture(u_objInfoTexture, fs_UV);    \r\n\r\n    float isntBG = 1.0;\r\n\r\n    if(objInfo.w > 0.0)\r\n    {\r\n        if(u_ClickedPos.w > 0.0 && distance(prevPosition.xyz, u_ClickedPos.xyz) < 30.0)\r\n        {\r\n            targetPos = u_ClickedPos;\r\n        }\r\n        else\r\n            targetPos = objInfo;\r\n    } \r\n    //Background     \r\n    else\r\n    {\r\n        \r\n        if(u_ClickedPos.w <= 0.0)\r\n        {\r\n            //targetPos.w = 0.0;\r\n\r\n            //apply env force\r\n            vec3 offset = fs_Col.xyz;\r\n            if(u_BackGround < 0.5)\r\n            {\r\n\r\n            }\r\n            else if(u_BackGround < 1.5)\r\n            {                \r\n                float waveTime = u_Time * 0.5;\r\n                float waveGap = sqrt(offset.x * offset.x + offset.z * offset.z);         \r\n                offset.y = sin(waveGap * 0.3 - waveTime*10.0  ) * sqrt(waveGap*0.5) - 18.0;\r\n                \r\n            }\r\n            else if(u_BackGround < 2.5)\r\n            {\r\n                float stepsTime = u_Time * 1.6;\r\n                float XX = floor(offset.x*0.3);\r\n                float YY = floor(offset.z*0.3);\r\n                offset.y = max(XX * sin(XX + stepsTime), YY * cos(YY +stepsTime)) - 23.0;\r\n            }\r\n            else if(u_BackGround < 3.5)\r\n            {\r\n                //Refer to Nop Jiarathanakul's A Particle Dream\r\n                // cylindrical coords\r\n                float radius = fract(offset.z);\r\n                float theta = fract(offset.x) * 6.283185307179586476925286766559 + u_Time;\r\n\r\n                // outward spiral function\r\n                radius *= 3.1415926535897932384626433832795;\r\n                vec3 spiralPos = vec3(\r\n                    radius * sin(theta),\r\n                    radius*radius * sin(4.0*theta + sin(3.0*3.1415926535897932384626433832795*radius+u_Time/2.0)) / 10.0,\r\n                    radius * cos(theta)\r\n                );\r\n                offset = spiralPos * 200.0;\r\n                offset.y -= 23.0;\r\n            }\r\n            else if(u_BackGround < 4.5)\r\n            {\r\n               float width = pow(abs(offset.x * offset.y * offset.z * 0.000001), 1.0 / (1.5) );\r\n               offset.x *= width;\r\n               offset.z *= width;\r\n            }\r\n\r\n            targetPos = vec4(offset, 1.0);\r\n        }\r\n        else if(distance(prevPosition.xyz, u_ClickedPos.xyz) < 50.0)\r\n        {\r\n            targetPos = u_ClickedPos;\r\n        }   \r\n        else\r\n        {\r\n            \r\n        }\r\n\r\n        isntBG = 0.0;     \r\n    }\r\n     \r\n\r\n    //calculate velocityPrime\r\n    \r\n   \r\n\r\n    vec3 desiredVelocity;\r\n    \r\n    if(targetPos.w == 1.0)\r\n    {\r\n       desiredVelocity = targetPos.xyz - prevPosition.xyz;\r\n\r\n       //if( length(desiredVelocity) > u_MaxSpeed)\r\n           desiredVelocity = normalize(desiredVelocity) * u_MaxSpeed;\r\n    }\r\n    else if(targetPos.w == 2.0)\r\n    {\r\n       desiredVelocity = prevPosition.xyz - targetPos.xyz;\r\n       //if( length(desiredVelocity) > u_MaxSpeed)\r\n           desiredVelocity = normalize(desiredVelocity) * u_MaxSpeed;\r\n    }\r\n    else\r\n    {\r\n        desiredVelocity =  fs_Col.xyz - prevPosition.xyz;//  vec3(0.0);\r\n    }\r\n      \r\n    \r\n\r\n    vec3 acceleration = (desiredVelocity - prevVelocity.xyz);\r\n    \r\n    out_velocityPrime = vec4(acceleration, 1.0);\r\n    out_positionPrime = prevVelocity;\r\n\r\n    out_velocity = prevVelocity;\r\n    out_position = prevPosition;\r\n    out_position.w = isntBG;\r\n    \r\n}\r\n"
 
 /***/ }),
 /* 74 */
@@ -16331,7 +16363,7 @@ module.exports = "#version 300 es\r\n\r\nin vec4 vs_Pos; // Non-instanced; each 
 /* 79 */
 /***/ (function(module, exports) {
 
-module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n//uniform sampler2D u_ParticleTexture;\r\nuniform float u_Time;\r\n\r\nuniform vec4 u_ParticleColor00;\r\nuniform vec4 u_ParticleColor01;\r\nuniform vec4 u_ParticleColor02;\r\nuniform vec4 u_ParticleColor03;\r\nuniform vec4 u_ParticleColor04;\r\n\r\nin vec2 fs_UV;\r\n\r\nlayout(location = 0) out vec4 out_Color;\r\n\r\nvoid main()\r\n{    \r\n  float x = pow(sqrt(1.0 - abs((fs_UV.x * 2.0 - 1.0))), 3.0);\r\n  float y = pow(fs_UV.y, 16.0);\r\n  y += pow(1.0 - fs_UV.y, 16.0);\r\n  float alpha = x * y;\r\n\r\n  vec4 colorResult;\r\n\r\n  float colorPin = fract(u_Time*0.2);\r\n\r\n  if(colorPin < 0.2)\r\n       colorResult = mix(u_ParticleColor00, u_ParticleColor01, colorPin / 0.2 );\r\n    else if(colorPin < 0.4)\r\n       colorResult = mix(u_ParticleColor01, u_ParticleColor02, (colorPin-0.2) / 0.2 );\r\n    else if(colorPin < 0.6)\r\n       colorResult = mix(u_ParticleColor02, u_ParticleColor03, (colorPin-0.4) / 0.2 );\r\n    else if(colorPin < 0.8)\r\n       colorResult = mix(u_ParticleColor03, u_ParticleColor04, (colorPin-0.6) / 0.2 );\r\n    else\r\n       colorResult = mix(u_ParticleColor04, u_ParticleColor00, (colorPin-0.8) / 0.2 );\r\n\r\n  out_Color = colorResult * alpha * (sin(u_Time*0.4) * 0.2 + 0.8) * 0.4;\r\n  out_Color.w = 1.0;\r\n}\r\n"
+module.exports = "#version 300 es\r\nprecision highp float;\r\n\r\n//uniform sampler2D u_ParticleTexture;\r\nuniform float u_Time;\r\n\r\nuniform vec4 u_ParticleColor00;\r\nuniform vec4 u_ParticleColor01;\r\nuniform vec4 u_ParticleColor02;\r\nuniform vec4 u_ParticleColor03;\r\nuniform vec4 u_ParticleColor04;\r\n\r\nin vec2 fs_UV;\r\n\r\nlayout(location = 0) out vec4 out_Color;\r\n\r\nvoid main()\r\n{    \r\n  float x = pow(sqrt(1.0 - abs((fs_UV.x * 2.0 - 1.0))), 3.0);\r\n  float y = pow(fs_UV.y, 16.0);\r\n  y += pow(1.0 - fs_UV.y, 16.0);\r\n  float alpha = x * y * 2.0;\r\n\r\n  vec4 colorResult;\r\n\r\n  float colorPin = fract(u_Time*0.2);\r\n\r\n  if(colorPin < 0.2)\r\n       colorResult = mix(u_ParticleColor00, u_ParticleColor01, colorPin / 0.2 );\r\n    else if(colorPin < 0.4)\r\n       colorResult = mix(u_ParticleColor01, u_ParticleColor02, (colorPin-0.2) / 0.2 );\r\n    else if(colorPin < 0.6)\r\n       colorResult = mix(u_ParticleColor02, u_ParticleColor03, (colorPin-0.4) / 0.2 );\r\n    else if(colorPin < 0.8)\r\n       colorResult = mix(u_ParticleColor03, u_ParticleColor04, (colorPin-0.6) / 0.2 );\r\n    else\r\n       colorResult = mix(u_ParticleColor04, u_ParticleColor00, (colorPin-0.8) / 0.2 );\r\n\r\n  out_Color = colorResult * alpha * (sin(u_Time*0.4) * 0.2 + 0.8) * 0.4;\r\n  out_Color.w = 1.0;\r\n}\r\n"
 
 /***/ })
 /******/ ]);

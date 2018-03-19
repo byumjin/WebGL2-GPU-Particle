@@ -59,51 +59,6 @@ void main()
     
     fs_Pos = vs_Pos * u_ParticleSize;
    
-    
-    //BG particle
-    if(prevPos.w == 0.0)
-    {
-        fs_Pos *= 3.0;
-
-        //apply env force
-
-        if(u_BackGround < 0.5)
-        {
-
-        }
-        else if(u_BackGround < 1.5)
-        {
-            float waveTime = u_Time * 2.6;
-            float waveGap = sqrt(offset.x * offset.x + offset.z * offset.z);         
-            offset.y = sin(waveGap * 0.3 - waveTime*10.0  ) * sqrt(waveGap*0.5) - 18.0;
-            
-        }
-        else if(u_BackGround < 2.5)
-        {
-            float stepsTime = u_Time * 2.6;
-            float XX = floor(offset.x*0.3);
-            float YY = floor(offset.z*0.3);
-            offset.y = max(XX * sin(XX + stepsTime), YY * cos(YY +stepsTime)) - 18.0;
-        }
-        else if(u_BackGround < 3.5)
-        {
-            //Refer to Nop Jiarathanakul's A Particle Dream
-            // cylindrical coords
-            float radius = uv.y;
-            float theta = uv.x * 6.283185307179586476925286766559 + u_Time;
-
-            // outward spiral function
-            radius *= 3.1415926535897932384626433832795;
-            vec3 targetPos = vec3(
-                radius * sin(theta),
-                radius*radius * sin(4.0*theta + sin(3.0*3.1415926535897932384626433832795*radius+u_Time/2.0)) / 10.0,
-                radius * cos(theta)
-            );
-            offset = targetPos * 15.0;
-        }
-    }
-    
-
     fs_UV.x = prevPos.w;
 
     offset = vec3(u_Model * vec4(offset, 1.0));

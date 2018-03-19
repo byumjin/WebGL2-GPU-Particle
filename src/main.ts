@@ -14,8 +14,9 @@ import * as WEBGLOBJLOADER from 'webgl-obj-loader';
 // Define an object with application parameters and button callbacks
 // This will be referred to by dat.GUI's functions that add GUI elements.
 const controls = {
+  AutoPlay: true,
   MaxSpeed: 25,
-  ParticleSize : 10.0,
+  ParticleSize : 12.0,
   Shape: 1,
   ColorScheme: 0,
   Alpha: 0.4,
@@ -33,6 +34,10 @@ let oldTime : number = 0.0;
 let currentTime : number = 0.0;
 let elapsedTime : number = 0.0;
 let deltaTime : number = 0.0;
+
+let shapeChangeTime : number = 0.0;
+let bgChangeTime : number = 0.0;
+let colorChangeTime : number = 0.0;
 
 let mousePosition: Array<number> = [250, 250];
 let currentAngle: Array<number> = [0,0];
@@ -382,19 +387,23 @@ function main() {
   // Add controls to the gui
   const gui = new DAT.GUI();
 
-  gui.add(controls, 'MaxSpeed', 10, 100).step(1);
-  gui.add(controls, 'ParticleSize', 1.0, 30.0).step(0.1);
-  gui.add(controls, 'Alpha', 0.0, 1.0).step(0.01);
+  gui.add(controls, 'AutoPlay');
+
+  var PAR = gui.addFolder('Particle');  
+
+  PAR.add(controls, 'MaxSpeed', 10, 100).step(1);
+  PAR.add(controls, 'ParticleSize', 1.0, 30.0).step(0.1);
+  PAR.add(controls, 'Alpha', 0.0, 1.0).step(0.01);
  
   
-  gui.add(controls, 'ColorScheme', { Macaroon: 0, Magenta: 1, Jungle: 2})
+  gui.add(controls, 'ColorScheme', { Macaroon: 0, Magenta: 1, Jungle: 2});
 
   gui.add(controls, 'Shape', { None: 0, Cube: 1, Suzanne: 2, Female: 3, Dragon: 4, Sheep: 5, Chromie: 6 }).onChange(function()
   {
     setInstanceColor(controls.Shape);
   });
 
-  gui.add(controls, 'Background', { None: 0, Waves: 1, Steps: 2, Petal: 3} );
+  gui.add(controls, 'Background', { None: 0, Waves: 1, Steps: 2, TurnTable: 3, HourGlass : 4} );
 
   //gui.close();
 
@@ -553,6 +562,41 @@ function main() {
     
     camera.update();
 
+    if(controls.AutoPlay)
+    {
+      var localDeltaTime = deltaTime * 0.001;
+      
+      shapeChangeTime += localDeltaTime;
+      bgChangeTime += localDeltaTime;
+      colorChangeTime += localDeltaTime;
+
+      if( shapeChangeTime >= 8.0)
+      {
+        
+        controls.Shape = (controls.Shape + 1) % 7;
+
+        if(controls.Shape == 0)
+          controls.Shape = 1;
+          
+        setInstanceColor(controls.Shape);
+        shapeChangeTime = 0.0;
+      }
+
+      if( bgChangeTime >= 14.0)
+      {
+        controls.Background = (controls.Background + 1) % 5;
+        bgChangeTime = 0.0;
+      }
+
+      /*
+      if( colorChangeTime >= 11.0)
+      {
+        controls.ColorScheme = (controls.ColorScheme + 1) % 3;
+        colorChangeTime = 0.0;
+      }
+      */
+    }
+
     stats.begin();
     //particleRender.setTime(currentTime * 0.001);
 
@@ -576,7 +620,7 @@ function main() {
 
     particlePhysic.renderStateDotBuffer(camera, stateDot, [
       physicSquare,
-    ], controls.MaxSpeed, particleInfoBufferResolution, clickedPos
+    ], controls.MaxSpeed, particleInfoBufferResolution, clickedPos, elapsedTime * 0.001, controls.Background
   );
 
     particlePhysic.setFrameBuffer(1);
@@ -735,12 +779,12 @@ function initEventHandlers(canvas : HTMLCanvasElement, mousePosition : Array<num
 
  function createMeshes()
 {
-  createdByLoader(MeshManager[0], cubeArray, 75000);
-  createdByLoader(MeshManager[1], suzanneArray, 1000);
-  createdByLoader(MeshManager[2], femaleArray, 160);
-  createdByLoader(MeshManager[3], dragonArray, 10);
-  createdByLoader(MeshManager[4], sheepArray, 180);
-  createdByLoader(MeshManager[5], elinArray, 90);
+  createdByLoader(MeshManager[0], cubeArray, 30000);
+  createdByLoader(MeshManager[1], suzanneArray, 500);
+  createdByLoader(MeshManager[2], femaleArray, 80);
+  createdByLoader(MeshManager[3], dragonArray, 5);
+  createdByLoader(MeshManager[4], sheepArray, 100);
+  createdByLoader(MeshManager[5], elinArray, 50);
   main();
 }
 

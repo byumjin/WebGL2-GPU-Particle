@@ -13,6 +13,9 @@ uniform float u_MaxSpeed;
 
 uniform int u_TraceObj;
 
+uniform float u_BackGround;
+uniform float u_Time;
+
 in vec4 fs_Col;
 in vec4 fs_Pos;
 in vec2 fs_UV;
@@ -42,17 +45,69 @@ void main()
         }
         else
             targetPos = objInfo;
-    }      
+    } 
+    //Background     
     else
     {
-        if(u_ClickedPos.w == 0.0)
+        
+        if(u_ClickedPos.w <= 0.0)
         {
-            targetPos.w = 0.0;
+            //targetPos.w = 0.0;
+
+            //apply env force
+            vec3 offset = fs_Col.xyz;
+            if(u_BackGround < 0.5)
+            {
+
+            }
+            else if(u_BackGround < 1.5)
+            {                
+                float waveTime = u_Time * 0.5;
+                float waveGap = sqrt(offset.x * offset.x + offset.z * offset.z);         
+                offset.y = sin(waveGap * 0.3 - waveTime*10.0  ) * sqrt(waveGap*0.5) - 18.0;
+                
+            }
+            else if(u_BackGround < 2.5)
+            {
+                float stepsTime = u_Time * 1.6;
+                float XX = floor(offset.x*0.3);
+                float YY = floor(offset.z*0.3);
+                offset.y = max(XX * sin(XX + stepsTime), YY * cos(YY +stepsTime)) - 23.0;
+            }
+            else if(u_BackGround < 3.5)
+            {
+                //Refer to Nop Jiarathanakul's A Particle Dream
+                // cylindrical coords
+                float radius = fract(offset.z);
+                float theta = fract(offset.x) * 6.283185307179586476925286766559 + u_Time;
+
+                // outward spiral function
+                radius *= 3.1415926535897932384626433832795;
+                vec3 spiralPos = vec3(
+                    radius * sin(theta),
+                    radius*radius * sin(4.0*theta + sin(3.0*3.1415926535897932384626433832795*radius+u_Time/2.0)) / 10.0,
+                    radius * cos(theta)
+                );
+                offset = spiralPos * 200.0;
+                offset.y -= 23.0;
+            }
+            else if(u_BackGround < 4.5)
+            {
+               float width = pow(abs(offset.x * offset.y * offset.z * 0.000001), 1.0 / (1.5) );
+               offset.x *= width;
+               offset.z *= width;
+            }
+
+            targetPos = vec4(offset, 1.0);
         }
         else if(distance(prevPosition.xyz, u_ClickedPos.xyz) < 50.0)
         {
             targetPos = u_ClickedPos;
         }   
+        else
+        {
+            
+        }
 
         isntBG = 0.0;     
     }
@@ -79,7 +134,7 @@ void main()
     }
     else
     {
-        desiredVelocity = fs_Col.xyz - prevPosition.xyz;//  vec3(0.0);
+        desiredVelocity =  fs_Col.xyz - prevPosition.xyz;//  vec3(0.0);
     }
       
     

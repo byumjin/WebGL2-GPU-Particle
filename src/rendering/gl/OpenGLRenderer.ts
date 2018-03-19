@@ -210,7 +210,7 @@ class OpenGLRenderer {
     }
   }
 
-  renderStateDotBuffer(camera: Camera, prog: ShaderProgram, drawables: Array<Drawable>, maxSpeed: number, bufferSize : vec2, clickedPos : vec4)
+  renderStateDotBuffer(camera: Camera, prog: ShaderProgram, drawables: Array<Drawable>, maxSpeed: number, bufferSize : vec2, clickedPos : vec4, time : number, backGround : number)
   {
     prog.setBufferSize(bufferSize);
     prog.setMaxSpeed(maxSpeed);
@@ -219,6 +219,9 @@ class OpenGLRenderer {
     prog.setprevVelocityTexture(this.stateAttaches[0]);
     prog.setprevPositionTexture(this.stateAttaches[1]);
     prog.setObjInfoTexture(this.objAttaches[0]);
+
+    prog.setBackGround(backGround);
+    prog.setTime(time);
 
     for (let drawable of drawables) {
       prog.draw(drawable);

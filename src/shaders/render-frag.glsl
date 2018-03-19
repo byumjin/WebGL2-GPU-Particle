@@ -17,7 +17,7 @@ void main()
    //BG particles     
    if(fs_UV.x == 0.0)
    {
-       dist = clamp(1.0 - ( length(fs_Pos.xyz / (u_ParticleSize * 3.0) )  * 2.0), 0.0, 1.0);
+       dist = clamp(1.0 - ( length(fs_Pos.xyz / (u_ParticleSize) )  * 2.0), 0.0, 1.0);
    }
    else
    {
@@ -25,6 +25,6 @@ void main()
    }
    
    out_Color = vec4(dist) * fs_Col;
-   out_Color.xyz *= (u_ParticleAlpha + (1.0 - u_ParticleAlpha) * fs_Col.w);
+   out_Color.xyz *=  (u_ParticleAlpha + (1.0 - u_ParticleAlpha) * fs_Col.w);
    out_Color.w = 1.0;
 }
