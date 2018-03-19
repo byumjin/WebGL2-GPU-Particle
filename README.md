@@ -79,14 +79,14 @@ Depending on the number of vertices, the number of new generated vertices on the
 
 ## Resource
 
-* Model
+### Model
 
- - Suzanne(https://www.blender.org/)
- - Stanford dragon(http://casual-effects.com/data/)
+ - [Suzanne](https://www.blender.org/)
+ - [Stanford dragon](http://casual-effects.com/data/)
  - Chromie from [Heroes of the Storm](https://us.battle.net/heroes/en/)
 
 
-* Music
+### Music
  - Luna - Free Somebody
 
 
