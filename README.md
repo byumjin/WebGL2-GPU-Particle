@@ -55,7 +55,7 @@ And, the alpha value follows the velocity of its particle.
 
 Like Nop Jiarathanakul's [Particle Dream application](http://www.iamnop.com/particles/), Left click attracts the around particles and Right Click repels them.
 To do this, it ray-traced to an infinite plane, which cross the origin, from the camera when the user clicks the screen.
-And, apply the right force to interact with our particles.
+Then, apply the right force to interact with the particles.
 
 When the user chooses a mesh to pop up, there are remained particles which wonder the background.
 These particles will follow one of the pre-defined force-field what the user chooses from GUI.
