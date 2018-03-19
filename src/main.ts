@@ -403,7 +403,7 @@ function main() {
     setInstanceColor(controls.Shape);
   });
 
-  gui.add(controls, 'Background', { None: 0, Waves: 1, Steps: 2, TurnTable: 3, HourGlass : 4} );
+  gui.add(controls, 'Background', { None: 0, Waves: 1, Steps: 2, TurnTable: 3, DNA : 4} );
 
   //gui.close();
 

@@ -96,9 +96,18 @@ void main()
             }
             else if(u_BackGround < 4.5)
             {
-               float width = pow(abs(offset.x * offset.y * offset.z * 0.000001), 1.0 / (1.5) );
-               offset.x *= width;
-               offset.z *= width;
+                float x = fract(offset.x * 0.01);
+                float z = fract(offset.z * 0.01);
+                float radius = sqrt(abs(x)) * 3.0;
+                float phi = 6.283185307179586476925286766559  * abs(z) ;
+                vec3 disk = vec3(radius * cos(phi), 0.0, radius * sin(phi)) * cos(u_Time + offset.y * 0.1);
+
+               offset.x =  disk.x + floor(offset.x * 0.01 - 0.75) * 25.0;
+               offset.z =  disk.z + floor(offset.z * 0.01 - 0.75) * 25.0;
+
+               //float width = pow(abs(offset.x * offset.y * offset.z * 0.00001), 1.0 / (1.5) );
+               //offset.x *= width;
+               //offset.z *= width;
             }
 
             targetPos = vec4(offset, 1.0);
