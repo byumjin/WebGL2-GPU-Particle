@@ -7,8 +7,10 @@
 
 ## Live Demo
 
-[![](imgs/main.png)](https://byumjin.github.io/WebGL2-GPU-Particle/)
-[![](imgs/main.gif)](https://byumjin.github.io/WebGL2-GPU-Particle/)
+| They are a million! |
+| --- |
+| [![](imgs/main.png)](https://byumjin.github.io/WebGL2-GPU-Particle/) |
+| [![](imgs/main.gif)](https://byumjin.github.io/WebGL2-GPU-Particle/) |
 
 * [WebGL Link](https://byumjin.github.io/WebGL2-GPU-Particle/)
 
