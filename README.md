@@ -20,12 +20,12 @@
 
 ### GUI
 
-- AutoPlay : It shows pre-ordered scenes. Recommend to use it.
+![](imgs/GUI.png)
 
+- AutoPlay : It shows pre-ordered scenes. Recommend to use it.
 - MaxSpeed : The max speed of each particle
 - ParticleSize : The size of each Particle quad
 - Alpha : The alpha of each Particle
-
 - ColorScheme : The use can choose one of pre-defined color schemes
 - Shape : The shape of mesh which attracts particles
 - Background : Setting force-field for background particles
@@ -75,5 +75,18 @@ Depending on the number of vertices, the number of new generated vertices on the
 ## Reference
 
 [Particle Dream application](http://www.iamnop.com/particles/)
+
+
+## Resource
+
+* Model
+
+ - Suzanne(https://www.blender.org/)
+ - Stanford dragon(http://casual-effects.com/data/)
+ - Chromie from [Heroes of the Storm](https://us.battle.net/heroes/en/)
+
+
+* Music
+ - Luna - Free Somebody
 
 
