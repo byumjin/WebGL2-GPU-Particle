@@ -20,7 +20,7 @@
 
 ### GUI
 
-- AutoPlay : It shows pre-ordered scene. Recommend to use it.
+- AutoPlay : It shows pre-ordered scenes. Recommend to use it.
 
 - MaxSpeed : The max speed of each particle
 - ParticleSize : The size of each Particle quad
@@ -34,7 +34,7 @@
 ## GPU particle
 
 If we try to implement particle system on CPU side, we can't create a bunch of particles because of the limitation of available threads.
-To address this issue, we can use GPU to simulate our particles. Because, like a physics simulation, each particle can be simulated indivisually.
+To address this issue, we can use GPU to simulate our particles. Because, like a physics simulation, each particle can be simulated individually.
 But, the problem is WebGL2 is still not supporting compute shader. So, we can implement this with using only vertex and fragment shader. (Actually, we can also use transform feedback, and it might be more efficient)
 
 First, we need to use textures for storing our particles' information. In other words, each texel has its one particle's information. Thus, the resolution of textures equals the number of controlable particles.
