@@ -47,6 +47,11 @@ In vertex shader, each instanced quad takes exact one pixel of texture. In fragm
 ## Procedural coloration and shaping of particles
 
 This project uses 3 color schemes called Macaroon, Magenta, Jungle.
+
+| Macaroon | Magenta | Jungle |
+| --- | --- | --- |
+| ![](imgs/Macaroon.png) | ![](imgs/Magenta.png) | ![](imgs/Jungle.png) |
+
 Basically, colors are determined by mesh's UV coordinates and elapsed time.
 And, the alpha value follows the velocity of its particle. 
 
@@ -64,6 +69,7 @@ These particles will follow one of the pre-defined force-field what the user cho
 ## Mesh surface attraction
 
 Just followed [the instruction](https://github.com/CIS-566-2018/homework-6-particle-system-eldu).
+Depending on the number of vertices, the number of new generated vertices on the surface is determined for preventing to generate particles which over maxium count.
 
 
 ## Reference
